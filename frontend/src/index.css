@@ -1,0 +1,80 @@
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+
+:root {
+  font-family: 'Space Grotesk', 'Segoe UI', sans-serif;
+  line-height: 1.6;
+  font-weight: 400;
+  color-scheme: light;
+  color: #1f1b16;
+  background-color: #f6f1e8;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  --ink: #1f1b16;
+  --muted: #6a625b;
+  --surface: #fff9f1;
+  --surface-strong: #ffffff;
+  --accent: #c46b3b;
+  --accent-strong: #9c4e29;
+  --accent-2: #356a4c;
+  --accent-3: #d9a441;
+  --shadow: 0 24px 70px rgba(28, 20, 11, 0.18);
+  --ring: 0 0 0 4px rgba(196, 107, 59, 0.18);
+  --radius-lg: 20px;
+  --radius-md: 14px;
+  --radius-sm: 10px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background:
+    radial-gradient(1200px 600px at 10% -10%, rgba(217, 164, 65, 0.25), transparent 60%),
+    radial-gradient(900px 500px at 95% 10%, rgba(53, 106, 76, 0.18), transparent 55%),
+    linear-gradient(180deg, #f6f1e8 0%, #f3e7d8 100%);
+  color: var(--ink);
+}
+
+h1, h2, h3 {
+  font-family: 'Fraunces', serif;
+  color: var(--ink);
+  letter-spacing: 0.2px;
+}
+
+a {
+  color: inherit;
+}
+
+button, input, select, textarea {
+  font-family: inherit;
+}
+
+button {
+  border-radius: 12px;
+  border: none;
+  padding: 0.7em 1.3em;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #fff;
+  background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+}
+
+button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 22px rgba(156, 78, 41, 0.25);
+  filter: saturate(1.05);
+}
+
+button:focus,
+button:focus-visible {
+  outline: none;
+  box-shadow: var(--ring);
+}
