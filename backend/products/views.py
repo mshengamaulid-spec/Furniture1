@@ -52,7 +52,7 @@ class OrderViewSet(viewsets.ModelViewSet):
         if self.action == "create":
             return [permissions.IsAuthenticated(), IsCustomer()]
         if self.action in ["update", "partial_update"]:
-            return [permissions.IsAuthenticated(), IsAdmin()]
+            return [permissions.IsAuthenticated(), IsCustomerOrAdmin()]
         if self.action == "destroy":
             return [permissions.IsAuthenticated(), IsCustomerOrAdmin()]
         return [permissions.IsAuthenticated()]

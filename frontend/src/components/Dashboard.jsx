@@ -14,6 +14,20 @@ function Dashboard() {
     price: '',
     image: null,
   });
+  const [editingProductId, setEditingProductId] = useState(null);
+  const [editProductForm, setEditProductForm] = useState({
+    name: '',
+    description: '',
+    price: '',
+    image: null,
+  });
+  const [editProductError, setEditProductError] = useState('');
+  const [editingOrderId, setEditingOrderId] = useState(null);
+  const [editOrderForm, setEditOrderForm] = useState({
+    quantity: 1,
+    status: 'pending',
+  });
+  const [editOrderError, setEditOrderError] = useState('');
   const [quantities, setQuantities] = useState({});
   const [formError, setFormError] = useState('');
   const [formSuccess, setFormSuccess] = useState('');
@@ -111,8 +125,16 @@ function Dashboard() {
     setProductForm((prev) => ({ ...prev, [field]: value }));
   };
 
+  const handleEditProductChange = (field, value) => {
+    setEditProductForm((prev) => ({ ...prev, [field]: value }));
+  };
+
   const handleQuantityChange = (productId, value) => {
     setQuantities((prev) => ({ ...prev, [productId]: value }));
+  };
+
+  const handleEditOrderChange = (field, value) => {
+    setEditOrderForm((prev) => ({ ...prev, [field]: value }));
   };
 
   const createProduct = async (e) => {
@@ -152,6 +174,96 @@ function Dashboard() {
     }
   };
 
+  const startEditProduct = (product) => {
+    setEditProductError('');
+    setEditingProductId(product.id);
+    setEditProductForm({
+      name: product.name || '',
+      description: product.description || '',
+      price: product.price || '',
+      image: null,
+    });
+  };
+
+  const cancelEditProduct = () => {
+    setEditingProductId(null);
+    setEditProductError('');
+    setEditProductForm({ name: '', description: '', price: '', image: null });
+  };
+
+  const updateProduct = async (productId) => {
+    setEditProductError('');
+    const { name, description, price, image } = editProductForm;
+    if (!name.trim() || !description.trim() || !price) {
+      setEditProductError('Name, description, and price are required.');
+      return;
+    }
+
+    const payload = new FormData();
+    payload.append('name', name.trim());
+    payload.append('description', description.trim());
+    payload.append('price', price);
+    if (image) payload.append('image', image);
+
+    try {
+      const token = localStorage.getItem('token');
+      const authHeaders = token ? { Authorization: `Bearer ${token}` } : {};
+      await axios.patch(`/api/products/${productId}/`, payload, { headers: authHeaders });
+      cancelEditProduct();
+      fetchProducts();
+    } catch (error) {
+      const detail = error?.response?.data;
+      const message =
+        typeof detail === 'string'
+          ? detail
+          : detail?.name?.[0] ||
+            detail?.description?.[0] ||
+            detail?.price?.[0] ||
+            'Failed to update product.';
+      setEditProductError(message);
+    }
+  };
+
+  const startEditOrder = (order) => {
+    setEditOrderError('');
+    setEditingOrderId(order.id);
+    setEditOrderForm({
+      quantity: order.quantity || 1,
+      status: order.status || 'pending',
+    });
+  };
+
+  const cancelEditOrder = () => {
+    setEditingOrderId(null);
+    setEditOrderError('');
+    setEditOrderForm({ quantity: 1, status: 'pending' });
+  };
+
+  const updateOrder = async (orderId) => {
+    setEditOrderError('');
+    const payload = {
+      quantity: Number(editOrderForm.quantity || 1),
+    };
+    if (user?.role === 'admin') {
+      payload.status = editOrderForm.status;
+    }
+
+    try {
+      await axios.patch(`/api/orders/${orderId}/`, payload);
+      cancelEditOrder();
+      fetchOrders();
+    } catch (error) {
+      const detail = error?.response?.data;
+      const message =
+        typeof detail === 'string'
+          ? detail
+          : detail?.quantity?.[0] ||
+            detail?.status?.[0] ||
+            'Failed to update order.';
+      setEditOrderError(message);
+    }
+  };
+
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
@@ -166,6 +278,15 @@ function Dashboard() {
     }
     return `${apiBase}${url}`;
   };
+
+  const canEditProduct = (product) => {
+    if (!user?.role) return false;
+    if (user.role === 'admin') return true;
+    if (user.role === 'carpenter') return product.carpenter === user.id;
+    return false;
+  };
+
+  const canEditOrders = user?.role === 'admin' || user?.role === 'customer';
 
   return (
     <div className="dashboard-container">
@@ -233,8 +354,48 @@ function Dashboard() {
                 {product.carpenter_name && (
                   <p className="product-meta">From: {product.carpenter_name}</p>
                 )}
-                <p className="product-description">{product.description}</p>
-                <p>${product.price}</p>
+                {editingProductId === product.id ? (
+                  <div className="product-edit">
+                    {editProductError && <p className="form-error">{editProductError}</p>}
+                    <input
+                      type="text"
+                      placeholder="Product name"
+                      value={editProductForm.name}
+                      onChange={(e) => handleEditProductChange('name', e.target.value)}
+                      required
+                    />
+                    <input
+                      type="number"
+                      placeholder="Price"
+                      min="0"
+                      step="0.01"
+                      value={editProductForm.price}
+                      onChange={(e) => handleEditProductChange('price', e.target.value)}
+                      required
+                    />
+                    <textarea
+                      placeholder="Description"
+                      value={editProductForm.description}
+                      onChange={(e) => handleEditProductChange('description', e.target.value)}
+                      rows="3"
+                      required
+                    />
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => handleEditProductChange('image', e.target.files?.[0] || null)}
+                    />
+                    <div className="edit-actions">
+                      <button onClick={() => updateProduct(product.id)} className="btn-secondary">Save</button>
+                      <button onClick={cancelEditProduct} className="btn-outline">Cancel</button>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <p className="product-description">{product.description}</p>
+                    <p>${product.price}</p>
+                  </>
+                )}
                 {user?.role === 'customer' && (
                   <div className="order-controls">
                     <input
@@ -247,13 +408,24 @@ function Dashboard() {
                   </div>
                 )}
                 {(user?.role === 'admin' || user?.role === 'carpenter') && (
-                  <button
-                    onClick={() => deleteProduct(product.id)}
-                    className="btn-danger"
-                    style={{ marginTop: '0.6rem' }}
-                  >
-                    Delete Product
-                  </button>
+                  <div className="product-actions">
+                    {canEditProduct(product) && (
+                      <button
+                        onClick={() => startEditProduct(product)}
+                        className="btn-outline"
+                        style={{ marginTop: '0.6rem' }}
+                      >
+                        Edit Product
+                      </button>
+                    )}
+                    <button
+                      onClick={() => deleteProduct(product.id)}
+                      className="btn-danger"
+                      style={{ marginTop: '0.6rem' }}
+                    >
+                      Delete Product
+                    </button>
+                  </div>
                 )}
               </div>
             ))}
@@ -266,8 +438,44 @@ function Dashboard() {
           <div className="orders-list">
             {orders.map(order => (
               <div key={order.id} className="order-item">
-                <p>{order.product_name} - Quantity: {order.quantity} - Status: {order.status}</p>
-                <button onClick={() => deleteOrder(order.id)} className="btn-danger">Delete Order</button>
+                {editingOrderId === order.id ? (
+                  <div className="order-edit">
+                    {editOrderError && <p className="form-error">{editOrderError}</p>}
+                    <p>{order.product_name}</p>
+                    <input
+                      type="number"
+                      min="1"
+                      value={editOrderForm.quantity}
+                      onChange={(e) => handleEditOrderChange('quantity', e.target.value)}
+                    />
+                    {user?.role === 'admin' && (
+                      <select
+                        value={editOrderForm.status}
+                        onChange={(e) => handleEditOrderChange('status', e.target.value)}
+                      >
+                        <option value="pending">Pending</option>
+                        <option value="confirmed">Confirmed</option>
+                        <option value="shipped">Shipped</option>
+                        <option value="delivered">Delivered</option>
+                        <option value="cancelled">Cancelled</option>
+                      </select>
+                    )}
+                    <div className="edit-actions">
+                      <button onClick={() => updateOrder(order.id)} className="btn-secondary">Save</button>
+                      <button onClick={cancelEditOrder} className="btn-outline">Cancel</button>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <p>{order.product_name} - Quantity: {order.quantity} - Status: {order.status}</p>
+                    <div className="order-actions">
+                      {canEditOrders && (
+                        <button onClick={() => startEditOrder(order)} className="btn-outline">Edit</button>
+                      )}
+                      <button onClick={() => deleteOrder(order.id)} className="btn-danger">Delete Order</button>
+                    </div>
+                  </>
+                )}
               </div>
             ))}
           </div>

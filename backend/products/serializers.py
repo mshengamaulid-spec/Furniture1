@@ -26,3 +26,20 @@ class OrderSerializer(serializers.ModelSerializer):
     class Meta:
         model = Order
         fields = ['id', 'customer', 'customer_name', 'product', 'product_name', 'quantity', 'total_price', 'status', 'ordered_at']
+
+    def validate(self, attrs):
+        request = self.context.get('request')
+        is_update = self.instance is not None
+        if (
+            is_update
+            and request
+            and request.user.is_authenticated
+            and request.user.role == "customer"
+        ):
+            allowed_fields = {"quantity"}
+            unexpected_fields = set(attrs.keys()) - allowed_fields
+            if unexpected_fields:
+                raise serializers.ValidationError(
+                    "Customers can only update the quantity on their orders."
+                )
+        return attrs
