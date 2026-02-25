@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 import os
 from pathlib import Path
+import dj_database_url
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -27,7 +28,8 @@ SECRET_KEY = 'django-insecure-m2b8@7w&sg)p5#$c(8thl_t*tg9^w6fr=!i*fgz(ug7bcb4l8*
 DEBUG = True
 
 ALLOWED_HOSTS = ['*']
-STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 STATIC_URL = '/static/'
 
 
@@ -86,16 +88,12 @@ WSGI_APPLICATION = 'furniture.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases  
 
+
+
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.environ.get('POSTGRES_DB', ''),
-        'USER': 'postgres',
-        'PASSWORD': 'm7s7h7e7',
-        'HOST': 'localhost',
-        'PORT': '5432', 
-    }
+    'default': dj_database_url.parse(os.environ.get('DATABASE_URL'))
 }
+
 
 
 # Password validation
