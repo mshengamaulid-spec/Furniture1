@@ -22,12 +22,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-m2b8@7w&sg)p5#$c(8thl_t*tg9^w6fr=!i*fgz(ug7bcb4l8*'
+SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-m2b8@7w&sg)p5#$c(8thl_t*tg9^w6fr=!i*fgz(ug7bcb4l8*')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ['*']  # Change to ['your-app.onrender.com'] after deployment
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 STATIC_URL = '/static/'
@@ -91,7 +91,7 @@ WSGI_APPLICATION = 'furniture.wsgi.application'
 
 
 DATABASES = {
-    'default': dj_database_url.parse(os.environ.get('DATABASE_URL'))
+    'default': dj_database_url.parse(os.environ.get('DATABASE_URL', 'sqlite:///db.sqlite3'))
 }
 
 
@@ -142,7 +142,9 @@ CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:3000",
     "http://localhost:5173",
     "http://127.0.0.1:5173",
+    os.environ.get('RENDER_EXTERNAL_URL', ''),
 ]
+CORS_ALLOWED_ORIGINS = [origin for origin in CORS_ALLOWED_ORIGINS if origin]
 
 # REST Framework settings
 REST_FRAMEWORK = {
