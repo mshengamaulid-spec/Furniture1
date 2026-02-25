@@ -1,1 +1,1 @@
-gunicorn furniture.wsgi
+web:gunicorn furniture.wsgi
