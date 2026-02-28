@@ -15,3 +15,5 @@ services:
         value: https://furniture-backend-gfjq.onrender.com
       - key: FRONTEND_URL
         value: https://furniture1-pied.vercel.app
+      - key: ALLOWED_HOSTS
+        value: furniture-backend-gfjq.onrender.com
