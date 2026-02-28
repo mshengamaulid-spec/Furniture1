@@ -9,7 +9,9 @@ const vercelFallback =
   typeof window !== 'undefined' && window.location.hostname.endsWith('.vercel.app')
     ? 'https://furniture-backend-gfjq.onrender.com'
     : ''
-const apiBaseUrl = (envApiBase || vercelFallback).replace(/\/$/, '')
+const apiBaseUrl = (envApiBase || vercelFallback)
+  .replace(/\/$/, '')
+  .replace(/\/api$/, '')
 if (apiBaseUrl) {
   axios.defaults.baseURL = apiBaseUrl
 }
