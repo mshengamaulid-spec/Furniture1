@@ -3,7 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
 function Dashboard() {
-  const apiBase = import.meta.env.VITE_API_TARGET || 'http://localhost:8000';
+  const apiBase = (
+    import.meta.env.VITE_API_BASE_URL ||
+    import.meta.env.VITE_API_TARGET ||
+    axios.defaults.baseURL ||
+    ''
+  ).replace(/\/$/, '');
   const [user, setUser] = useState(null);
   const [products, setProducts] = useState([]);
   const [orders, setOrders] = useState([]);
@@ -274,6 +279,9 @@ function Dashboard() {
   const resolveImageUrl = (url) => {
     if (!url) return '';
     if (url.startsWith('http://') || url.startsWith('https://')) {
+      return url;
+    }
+    if (!apiBase) {
       return url;
     }
     return `${apiBase}${url}`;
