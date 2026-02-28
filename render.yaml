@@ -7,7 +7,7 @@ services:
     buildCommand: pip install -r requirements.txt && python manage.py collectstatic --noinput
     startCommand: >-
       python manage.py migrate &&
-      python manage.py shell -c "from django.contrib.auth import get_user_model;U=get_user_model();u,created=U.objects.get_or_create(username='mshenga',defaults={'email':'mshengamaulid@gmail.com','is_staff':True,'is_superuser':True});u.email='mshengamaulid@gmail.com';u.is_staff=True;u.is_superuser=True;u.set_password('m7s7h7e7');u.save()" &&
+      python manage.py shell -c "from django.contrib.auth import get_user_model;U=get_user_model();u,created=U.objects.get_or_create(username='mshenga',defaults={'email':'mshengamaulid@gmail.com','is_staff':True,'is_superuser':True,'role':'admin'});u.email='mshengamaulid@gmail.com';u.is_staff=True;u.is_superuser=True;u.role='admin';u.set_password('m7s7h7e7');u.save()" &&
       gunicorn furniture.wsgi
     envVars:
       - key: PYTHON_VERSION
