@@ -2,10 +2,10 @@ services:
   - type: web
     name: furniture-backend
     runtime: python
-    pythonVersion: 3.11
+    plan: free
+    rootDir: backend
     buildCommand: pip install -r requirements.txt && python manage.py collectstatic --noinput
     startCommand: gunicorn furniture.wsgi
-    workingDirectory: backend
     envVars:
       - key: PYTHON_VERSION
-        value: 3.11
+        value: 3.12.0
