@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 import os
 from pathlib import Path
+from urllib.parse import urlparse
 import dj_database_url
 
 
@@ -27,7 +28,18 @@ SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-m2b8@7w&sg)p5#$c(8thl
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 
-ALLOWED_HOSTS = ['*']  # Change to ['your-app.onrender.com'] after deployment
+ALLOWED_HOSTS = [host.strip() for host in os.environ.get('ALLOWED_HOSTS', '').split(',') if host.strip()]
+RENDER_EXTERNAL_URL = os.environ.get('RENDER_EXTERNAL_URL', '')
+FRONTEND_URL = os.environ.get('FRONTEND_URL', '')
+
+if RENDER_EXTERNAL_URL:
+    render_host = urlparse(RENDER_EXTERNAL_URL).netloc
+    if render_host and render_host not in ALLOWED_HOSTS:
+        ALLOWED_HOSTS.append(render_host)
+
+if DEBUG and not ALLOWED_HOSTS:
+    ALLOWED_HOSTS = ['*']
+
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 STATIC_URL = '/static/'
@@ -156,9 +168,12 @@ CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:3000",
     "http://localhost:5173",
     "http://127.0.0.1:5173",
-    os.environ.get('RENDER_EXTERNAL_URL', ''),
+    RENDER_EXTERNAL_URL,
+    FRONTEND_URL,
 ]
 CORS_ALLOWED_ORIGINS = [origin for origin in CORS_ALLOWED_ORIGINS if origin]
+
+CSRF_TRUSTED_ORIGINS = [origin for origin in [RENDER_EXTERNAL_URL, FRONTEND_URL] if origin.startswith('https://')]
 
 # REST Framework settings
 REST_FRAMEWORK = {
