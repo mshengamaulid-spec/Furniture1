@@ -12,7 +12,7 @@ services:
       - key: DEBUG
         value: "False"
       - key: SECRET_KEY
-        sync: false
+        value: django-prod-9mX3Qv7Lk2Nf8Tz4Rw1Yp6Ha0Bc5De7J
       - key: DATABASE_URL
         value: postgresql://neondb_owner:npg_VRhQfcs63AOZ@ep-tiny-cherry-aitahnof-pooler.c-4.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require
       - key: RENDER_EXTERNAL_URL
