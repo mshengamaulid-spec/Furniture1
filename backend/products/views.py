@@ -30,9 +30,7 @@ class ProductViewSet(viewsets.ModelViewSet):
     filterset_fields = ["carpenter"]
 
     def get_queryset(self):
-        user = self.request.user
-        if user.is_authenticated and user.role == "carpenter":
-            return Product.objects.filter(carpenter=user)
+        # Product catalog is public; everyone can see all posted products/images.
         return Product.objects.all()
 
     def get_permissions(self):
