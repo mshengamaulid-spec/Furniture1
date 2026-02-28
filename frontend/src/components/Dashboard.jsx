@@ -37,6 +37,19 @@ function Dashboard() {
   const [formError, setFormError] = useState('');
   const [formSuccess, setFormSuccess] = useState('');
   const navigate = useNavigate();
+  const clearSessionAndRedirect = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    setUser(null);
+    navigate('/login');
+  };
+
+  const isUnauthorized = (error) => error?.response?.status === 401;
+
+  const authConfig = () => {
+    const token = localStorage.getItem('token');
+    return token ? { headers: { Authorization: `Bearer ${token}` } } : {};
+  };
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -46,7 +59,6 @@ function Dashboard() {
       setUser(currentUser);
     }
     if (token) {
-      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
       fetchOrders();
       if (currentUser?.role === 'admin') {
         fetchUsers();
@@ -68,19 +80,26 @@ function Dashboard() {
 
   const fetchOrders = async () => {
     try {
-      const response = await axios.get('/api/orders/');
+      const response = await axios.get('/api/orders/', authConfig());
       setOrders(response.data);
     } catch (error) {
+      if (isUnauthorized(error)) {
+        clearSessionAndRedirect();
+        return;
+      }
       console.error('Error fetching orders', error);
     }
   };
 
   const fetchUsers = async () => {
     try {
-      const response = await axios.get('/api/users/');
+      const response = await axios.get('/api/users/', authConfig());
       setUsers(response.data);
     } catch (error) {
-      // Only admins can access this endpoint
+      if (isUnauthorized(error)) {
+        clearSessionAndRedirect();
+        return;
+      }
       setUsers([]);
     }
   };
@@ -88,40 +107,56 @@ function Dashboard() {
   const placeOrder = async (productId) => {
     try {
       const quantity = Number(quantities[productId] || 1);
-      await axios.post('/api/orders/', { product: productId, quantity });
+      await axios.post('/api/orders/', { product: productId, quantity }, authConfig());
       alert('Order placed');
       fetchOrders();
     } catch (error) {
+      if (isUnauthorized(error)) {
+        clearSessionAndRedirect();
+        return;
+      }
       alert('Error placing order');
     }
   };
 
   const deleteOrder = async (orderId) => {
     try {
-      await axios.delete(`/api/orders/${orderId}/`);
+      await axios.delete(`/api/orders/${orderId}/`, authConfig());
       alert('Order deleted');
       fetchOrders();
     } catch (error) {
+      if (isUnauthorized(error)) {
+        clearSessionAndRedirect();
+        return;
+      }
       alert('Error deleting order');
     }
   };
 
   const deleteProduct = async (productId) => {
     try {
-      await axios.delete(`/api/products/${productId}/`);
+      await axios.delete(`/api/products/${productId}/`, authConfig());
       alert('Product deleted');
       fetchProducts();
     } catch (error) {
+      if (isUnauthorized(error)) {
+        clearSessionAndRedirect();
+        return;
+      }
       alert('Error deleting product');
     }
   };
 
   const deleteUser = async (userId) => {
     try {
-      await axios.delete(`/api/users/${userId}/`);
+      await axios.delete(`/api/users/${userId}/`, authConfig());
       alert('User deleted');
       fetchUsers();
     } catch (error) {
+      if (isUnauthorized(error)) {
+        clearSessionAndRedirect();
+        return;
+      }
       alert('Error deleting user');
     }
   };
@@ -160,13 +195,15 @@ function Dashboard() {
     if (image) payload.append('image', image);
 
     try {
-      const token = localStorage.getItem('token');
-      const authHeaders = token ? { Authorization: `Bearer ${token}` } : {};
-      await axios.post('/api/products/', payload, { headers: authHeaders });
+      await axios.post('/api/products/', payload, authConfig());
       setFormSuccess('Product created successfully.');
       setProductForm({ name: '', description: '', price: '', image: null });
       fetchProducts();
     } catch (error) {
+      if (isUnauthorized(error)) {
+        clearSessionAndRedirect();
+        return;
+      }
       const detail = error?.response?.data;
       const message =
         typeof detail === 'string'
@@ -211,12 +248,14 @@ function Dashboard() {
     if (image) payload.append('image', image);
 
     try {
-      const token = localStorage.getItem('token');
-      const authHeaders = token ? { Authorization: `Bearer ${token}` } : {};
-      await axios.patch(`/api/products/${productId}/`, payload, { headers: authHeaders });
+      await axios.patch(`/api/products/${productId}/`, payload, authConfig());
       cancelEditProduct();
       fetchProducts();
     } catch (error) {
+      if (isUnauthorized(error)) {
+        clearSessionAndRedirect();
+        return;
+      }
       const detail = error?.response?.data;
       const message =
         typeof detail === 'string'
@@ -254,10 +293,14 @@ function Dashboard() {
     }
 
     try {
-      await axios.patch(`/api/orders/${orderId}/`, payload);
+      await axios.patch(`/api/orders/${orderId}/`, payload, authConfig());
       cancelEditOrder();
       fetchOrders();
     } catch (error) {
+      if (isUnauthorized(error)) {
+        clearSessionAndRedirect();
+        return;
+      }
       const detail = error?.response?.data;
       const message =
         typeof detail === 'string'
@@ -272,7 +315,7 @@ function Dashboard() {
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
-    delete axios.defaults.headers.common['Authorization'];
+    setUser(null);
     navigate('/login');
   };
 

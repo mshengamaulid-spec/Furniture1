@@ -13,7 +13,6 @@ function Login() {
       const response = await axios.post('/api/auth/login/', { username, password });
       localStorage.setItem('token', response.data.access);
       localStorage.setItem('user', JSON.stringify(response.data.user));
-      axios.defaults.headers.common['Authorization'] = `Bearer ${response.data.access}`;
       navigate('/dashboard');
     } catch (error) {
       alert('Login failed');
