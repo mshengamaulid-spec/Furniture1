@@ -5,10 +5,14 @@ services:
     plan: free
     rootDir: backend
     buildCommand: pip install -r requirements.txt && python manage.py collectstatic --noinput
-    startCommand: gunicorn furniture.wsgi
+    startCommand: python manage.py migrate && gunicorn furniture.wsgi
     envVars:
       - key: PYTHON_VERSION
         value: 3.12.0
+      - key: DEBUG
+        value: "False"
+      - key: SECRET_KEY
+        sync: false
       - key: DATABASE_URL
         value: postgresql://neondb_owner:npg_VRhQfcs63AOZ@ep-tiny-cherry-aitahnof-pooler.c-4.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require
       - key: RENDER_EXTERNAL_URL
